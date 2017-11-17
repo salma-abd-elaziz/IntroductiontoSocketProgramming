@@ -1,0 +1,3 @@
+GET ttt.txt www.tutorialspoint.com (port-number)
+POST sss.html www.facebook.com (port-number)
+POST sss.jpg www.github.com (port-number)
