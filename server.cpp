@@ -64,7 +64,7 @@ void sendResponse(int new_fd, char* response){
     	perror("send response");
 }
 
-void handlePostRequest(int new_fd, std::vector<std::string> curRequest){
+void handlePostRequest(int new_fd, std::vector<std::string> curRequest) {
 	sendResponse(new_fd, OK_MSG);
 
     std::string fileType = curRequest[4];
@@ -79,7 +79,7 @@ void handlePostRequest(int new_fd, std::vector<std::string> curRequest){
     }
 }
 
-void handleGetRequest(int new_fd, std::vector<std::string> curRequest){
+void handleGetRequest(int new_fd, std::vector<std::string> curRequest) {
 	cout << "lalala" << endl;
 	std::string fileType;// = curRequest[4];
 	int result;
@@ -117,8 +117,7 @@ void handleGetRequest(int new_fd, std::vector<std::string> curRequest){
 
 
 
-int main(void)
-{
+int main(void) {
     int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr;  // connector's address information
@@ -131,8 +130,7 @@ int main(void)
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;  // use my IP
-    if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0)
-    {
+    if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         return 1;
     }
@@ -189,35 +187,30 @@ int main(void)
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr*)&their_addr),
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
-        if (!fork())      // this is the child process
-        {
-            
+        if (!fork()) {     // this is the child process 
             close(sockfd);  // child doesn't need the listener
             char buf[MAXDATASIZE];
             int numbytes;
-            
 			char* buffer;
 			int result = recv(new_fd,buffer, 255, 0);
 			if (result <= -1) {
                 perror("recv");
                 exit(1);
             }
-
             // Request.
             cout << buffer << endl;
-
             // parse request.
             string str(buffer);
             vector<string> request = parse_request(str);
-
             //check Get or Post.
-
             // Get
             // GET => ttt.txt => HTTP/1.1 => Host: => www.tutorialspoint.com
             if (request.at(REQUESTTYPE).compare(GET) == 0) {
                 cout << "get" << endl;
                 cout << "hi" << endl;
                 string file_name = request.at(FILENAME);
+                // check the extension.
+
                 string line;
                 ifstream infile;
                 cout <<  file_name << endl;
@@ -240,18 +233,9 @@ int main(void)
                 infile.close();
 
             } else if (request.at(REQUESTTYPE).compare(POST) == 0) {
-
             // Post, send OK, then receive the file to update.
-
-
                 cout << "post" << endl;
-
             }    
-            /*if(curRequest[0].compare("GET") == 0)
-                handleGetRequest(new_fd, curRequest);
-            else
-	            handlePostRequest(new_fd, curRequest);
-*/
             cout << "finished" << endl;
             close(new_fd);
             exit(0);
