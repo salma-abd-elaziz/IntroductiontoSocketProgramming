@@ -1,13 +1,5 @@
 #include "functions.h"
 
-
-#define HTTP "HTTP/1.1"
-#define IMAGE "image"
-#define HTML "html"
-#define TXT "txt"
-#define NEWLINE "/n"
-
-
 // Parsing the command files.
 vector<string> parse_file(string file_name) {
     vector<string> result;
@@ -19,18 +11,19 @@ vector<string> parse_file(string file_name) {
         // exit(1);   // call system to stop
     }
     string x;
-    while (std::getline(inFile, x)) {
+    while (std::getline(inFile, x)) {  
+        if (x.compare(NEWLINE) == 0) continue; // not working :V. because getline doesn't read new line :3.
         result.push_back(x);
     }
     inFile.close();
-    result.push_back(x);
     return result;
 }  
 
 
+
+
 vector<string> split (string s, string delimiter ) {
     size_t pos = 0;
-    cout << "hi";
     vector<string> result;
     string token;
     while ((pos = s.find(delimiter)) != string::npos) {
@@ -38,9 +31,13 @@ vector<string> split (string s, string delimiter ) {
         s.erase(0, pos + delimiter.length());
         result.push_back(token);
     }
-    result.push_back(s);
+    result.push_back(s); //check that 
     return result;
 }
+
+// Returns one HTTP request.
+
+
 
 // Forward the request to formating function.
 vector<string> get_request_vector(string client_request_string) {
@@ -64,7 +61,24 @@ vector<string> get_request_vector(string client_request_string) {
     return result;
 }
 
+
 string get_request(string request) {
-  
-    return request;
+    string result;
+    string file_type;
+    vector<string> client_request = split(request,SPACE);
+    for (int i = 0; i < client_request.size() - 1; i++) { // size 1 => port number not used
+        if (i == 2) { 
+            result.append(HTTP);
+            result += NEWLINE;
+            result += HOST;
+            result += SPACE; 
+        }
+        result.append(client_request.at(i));
+        result += SPACE;
+    }
+    // add carriage return and new line at end of request.
+    result += CARRiAGERETURN;  
+    result += NEWLINE;
+    return result;
 }
+

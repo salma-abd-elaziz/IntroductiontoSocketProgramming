@@ -1,23 +1,7 @@
 /*
-** server.c -- a stream socket server demo
+** server.cpp 
 */
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/wait.h>
-#include <signal.h>
-#include <iostream>
-#include <vector>
-#include <string>
-
-using namespace std;
+#include "functions.h"
 
 #define GET_TYPE 1
 #define POST_TYPE 0
@@ -218,13 +202,13 @@ int main(void)
             // Request.
             cout << buffer << endl;
 
-
             // parse request.
-                
+            
+
             //check Get or Post.
 
             // Get
-            if (GET) {
+           /* if (GET) {
                 // use file name to open file and send it. 
                 string file_name; // Get file name from request
                 string line;
@@ -239,7 +223,7 @@ int main(void)
                 send(new_socket , end_msg , strlen(end_msg) , 0);
 
                 infile.close();
-            }
+            }*/
 
             // Post, send OK, then receive the file to update.
 

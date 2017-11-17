@@ -1,35 +1,13 @@
 /*
-** client.c -- a stream socket client demo
+** client.cpp
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <netdb.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <fstream>
-#include <iostream>
-#include <vector>
-#include <string>
-using namespace std;
 
+#include "functions.h"
 
 #define PORT "3490" // the port client will be connecting to
 #define MAXDATASIZE 100 // max number of bytes we can get at once
-#define HTTP "HTTP/1.1"
-#define IMAGE "image"
-#define HTML "html"
-#define TXT "txt"
-#define HOST "Host:"
-#define NEWLINE "\n"
-#define SPACE " "
-#define GET "GET"
-#define POST "POST"
+
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -39,58 +17,6 @@ void *get_in_addr(struct sockaddr *sa)
         return &(((struct sockaddr_in*)sa)->sin_addr);
     }
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
-
-// Parsing the command files.
-vector<string> parse_file(string file_name) {
-    vector<string> result;
-    ifstream inFile;
-    inFile.open(file_name.c_str());
-
-    if (!inFile.is_open()) {
-        cerr << "Unable to open file datafile.txt";
-        // exit(1);   // call system to stop
-    }
-    string x;
-    while (std::getline(inFile, x)) {  
-        if (x.compare(NEWLINE) == 0) continue; // not working :V. because getline doesn't read new line :3.
-        result.push_back(x);
-    }
-    inFile.close();
-    return result;
-}  
-
-
-vector<string> split (string s, string delimiter ) {
-    size_t pos = 0;
-    vector<string> result;
-    string token;
-    while ((pos = s.find(delimiter)) != string::npos) {
-        token = s.substr(0, pos);
-        s.erase(0, pos + delimiter.length());
-        result.push_back(token);
-    }
-    result.push_back(s); //check that 
-    return result;
-}
-
-
-string get_request(string request) {
-    string result;
-    string file_type;
-    vector<string> client_request = split(request,SPACE);
-    for (int i = 0; i < client_request.size() - 1; i++) { // size 1 => port number not used
-        if (i == 2) { 
-            result.append(HTTP);
-            result += NEWLINE;
-            result.append(HOST);
-            result += SPACE;
-        }
-        result.append(client_request.at(i));
-        result += SPACE;
-    }
-    result.append
-    return result;
 }
 
 
@@ -157,13 +83,13 @@ int main(int argc, char *argv[])
         cout << request << endl;
         if (send(sockfd, request.c_str(), request.size(), 0) == -1) perror("send");
         // check if get or post.
-        if (s.find(GET) != string::npos) { // get
+        if (request.find(GET) != string::npos) { // get
             // receive file (download).
 
         } else { // post
             // wait for OK message then sent file according to file type.
             char* buffer;    
-            if (recv(new_fd, buffer, 255, 0) <= -1) {
+            if (recv(sockfd, buffer, 255, 0) <= -1) {
 
             }
 
