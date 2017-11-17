@@ -6,20 +6,18 @@ vector<string> parse_file(string file_name) {
     ifstream inFile;
     inFile.open(file_name.c_str());
 
-    if (!inFile.is_open()) {
+    if (!inFile) {
         cerr << "Unable to open file datafile.txt";
         // exit(1);   // call system to stop
     }
     string x;
     while (std::getline(inFile, x)) {  
-        if (x.compare(NEWLINE) == 0) continue; // not working :V. because getline doesn't read new line :3.
+        // getline doesn't read new line :3, so no need to check for newlines.
         result.push_back(x);
     }
     inFile.close();
     return result;
 }  
-
-
 
 
 vector<string> split (string s, string delimiter ) {
@@ -36,37 +34,11 @@ vector<string> split (string s, string delimiter ) {
 }
 
 // Returns one HTTP request.
-
-
-
-// Forward the request to formating function.
-vector<string> get_request_vector(string client_request_string) {
-    vector<string> result;
-    string file_type;
-    vector<string> client_request = split(client_request_string, SPACE);
-    for (int i = 0; i < client_request.size() - 1; i++) {
-        if (i == 1) { // Check file-name.
-            vector<string> v = split(client_request.at(i), ".");
-            file_type = v.at(v.size());
-            if (file_type.compare(TXT) != 0 && file_type.compare(HTML) != 0) {
-                file_type = IMAGE;
-            }
-        } else if (i == 2) {
-            result.push_back(HTTP);
-        }
-        result.push_back(client_request.at(i));
-    }
-    // Add file type.
-    result.push_back(file_type);
-    return result;
-}
-
-
 string get_request(string request) {
     string result;
     string file_type;
     vector<string> client_request = split(request,SPACE);
-    for (int i = 0; i < client_request.size() - 1; i++) { // size 1 => port number not used
+    for (int i = 0; i < client_request.size() - 1; i++) { // size-1 => port number not used
         if (i == 2) { 
             result.append(HTTP);
             result += NEWLINE;
@@ -82,3 +54,26 @@ string get_request(string request) {
     return result;
 }
 
+
+vector<string> parse_request(string request) {
+    vector<string> result;
+    //  Assuming the request ends with \r\n, split at them.
+    string delimiter = CARRiAGERETURN;
+    delimiter += NEWLINE;
+    // This will happen if the server received more than one request at the buffer. can this happen?
+    // assuming not we will process only requests.at(0)
+    vector<string> requests = split(request, delimiter);
+    // process a request.
+
+    /*split at newline, will give two parts as :
+    * GET ttt.txt HTTP/1.1
+    * Host: www.tutorialspoint.com 
+    */
+    vector<string> requestLines = split(requests.at(0), NEWLINE); //2 lines.
+    for (int j = 0; j < requestLines.size(); j++) {
+        vector<string> s = split(requestLines.at(j), SPACE);
+        result.insert(result.end(), s.begin(), s.end());
+    }
+    // GET => ttt.txt => HTTP/1.1 => Host: => www.tutorialspoint.com
+     return result;
+}

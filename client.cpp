@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
         // check if get or post.
         if (request.find(GET) != string::npos) { // get
             // receive file (download).
-
+        	
         } else { // post
             // wait for OK message then sent file according to file type.
             char* buffer;    

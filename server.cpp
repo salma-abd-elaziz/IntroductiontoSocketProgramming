@@ -11,6 +11,10 @@
 #define MAXDATASIZE 100 // max number of bytes we can get at once
 #define OK_MSG "HTTP/1.0 200 OK\r\n"
 #define ERR_MSG "HTTP/1.0 404 Not Found\r\n"
+//
+#define REQUESTTYPE 0
+#define FILENAME 1
+#define HOSTNAME 4
 
 void sigchld_handler(int s)
 {
@@ -203,34 +207,46 @@ int main(void)
             cout << buffer << endl;
 
             // parse request.
-            
+            string str(buffer);
+            vector<string> request = parse_request(str);
 
             //check Get or Post.
 
             // Get
-           /* if (GET) {
-                // use file name to open file and send it. 
-                string file_name; // Get file name from request
+            // GET => ttt.txt => HTTP/1.1 => Host: => www.tutorialspoint.com
+            if (request.at(REQUESTTYPE).compare(GET) == 0) {
+                cout << "get" << endl;
+                cout << "hi" << endl;
+                string file_name = request.at(FILENAME);
                 string line;
                 ifstream infile;
-                infile.open ("text.txt");
+                cout <<  file_name << endl;
+                // use file name to open file and send it. 
+                 infile.open(file_name.c_str()); // Get file name from request
+                // File doesn't exits.
+                if (!infile){
+                    //error file doesn't exitst
+                }
+                cout << "228 " << endl;
                 while(!infile.eof()) {
+                    cout << "230" << endl;
                     getline(infile,line); 
                     const char *STRING_mod = line.c_str();
-                    send(new_socket , STRING_mod , strlen(STRING_mod) , 0);
+                    send(new_fd , STRING_mod , strlen(STRING_mod) , 0);
                 }
+                cout << "235" << endl;
                 char *end_msg="end";
-                send(new_socket , end_msg , strlen(end_msg) , 0);
-
+                send(new_fd , end_msg , strlen(end_msg) , 0);
                 infile.close();
-            }*/
+
+            } else if (request.at(REQUESTTYPE).compare(POST) == 0) {
 
             // Post, send OK, then receive the file to update.
 
 
+                cout << "post" << endl;
 
-
-
+            }    
             /*if(curRequest[0].compare("GET") == 0)
                 handleGetRequest(new_fd, curRequest);
             else

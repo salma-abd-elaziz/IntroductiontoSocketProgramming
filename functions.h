@@ -29,12 +29,19 @@
 #define POST "POST"
 #define CARRiAGERETURN "\r"
 
+
 using namespace std;
 
 vector<string> parse_file(string file_name);
 vector<string> split (string s, string delimiter);
-vector<string> get_request_vector(string client_request_string);
 string get_request(string request);
+vector<string> parse_request(string request);
+
 
 #endif
 
+
+// questions?
+/*
+the use of port number and host name :V
+*/
