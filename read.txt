@@ -1,1 +1,0 @@
-GET ttt.txt www.tutorialspoint.com (port-number)

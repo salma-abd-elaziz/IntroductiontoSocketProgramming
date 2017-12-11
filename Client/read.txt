@@ -1,0 +1,5 @@
+POST index.html salma 3490\r\n\r\n
+POST ahmed.jpg salma 3490\r\n\r\n
+GET ahmed.txt salma 3490\r\n
+Content-length: 200\r\n\r\n
+

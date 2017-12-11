@@ -8,13 +8,8 @@
 #define VEC_MAX_SIZE 5000
 #define PORT "3490"  // the port users will be connecting to
 #define BACKLOG 10   // how many pending connections queue will hold
-#define MAXDATASIZE 100 // max number of bytes we can get at once
-#define OK_MSG "HTTP/1.0 200 OK\r\n"
-#define ERR_MSG "HTTP/1.0 404 Not Found\r\n"
 //
-#define REQUESTTYPE 0
-#define FILENAME 1
-#define HOSTNAME 4
+
 
 void sigchld_handler(int s)
 {
@@ -32,92 +27,75 @@ void* get_in_addr(struct sockaddr* sa)
 }
 
 bool checkFileExisting(std::string fileName){
+    ifstream file;
+    file.open(fileName.c_str());
+    if(!file) {
+        file.close();
+        return false;
+    }
+    file.close();
     return true;
 }
 
-void recvTxt(int new_fd){
-
-}
-
-void recvHTML(int new_fd){
-
-}
-
-void recvImg(int new_fd){
-	
-}
-
-int sendTxt(int new_fd, std::vector<std::string> curRequest){
-
-}
-
-int sendHTML(int new_fd, std::vector<std::string> curRequest){
-
-}
-
-int sendImg(int new_fd, std::vector<std::string> curRequest){
-	
-}
 
 void sendResponse(int new_fd, char* response){
-    if (send(new_fd, response, strlen(response), 0) == -1)
-    	perror("send response");
+    int yy; 
+    if ((yy = send(new_fd, response, strlen(response), 0)) == -1)
+        perror("send response");
 }
 
-void handlePostRequest(int new_fd, std::vector<std::string> curRequest) {
-	sendResponse(new_fd, OK_MSG);
+void handlePostRequest(int new_fd, std::vector<std::string> request){
+    
+    char* response;
+    std::string fileName = request[1];    
+    response = OK_MSG;
+    
+    sendResponse(new_fd, response);
 
-    std::string fileType = curRequest[4];
+    std::string fileType = request[5];
     if(fileType.compare("txt") == 0){
-    	recvTxt(new_fd);
+        recv(new_fd, request[FILENAME]);
     }else if(fileType.compare("html") == 0){
-		recvHTML(new_fd);
+        recv(new_fd, request[FILENAME]);
     }else if(fileType.compare("img") == 0){
-    	recvImg(new_fd);
+        recv(new_fd, request[FILENAME]);
     }else{
-		printf("(POST request) file type not recognised\n");
+        printf("(POST request) file type not recognised\n");
     }
 }
 
-void handleGetRequest(int new_fd, std::vector<std::string> curRequest) {
-	cout << "lalala" << endl;
-	std::string fileType;// = curRequest[4];
-	int result;
-	char* response;
-	std::string fileName;// = curRequest[1];
-
-    
-    cout << "ahah" << endl;
-	if(!checkFileExisting(fileName)){
-		 response = ERR_MSG;	
-	}else{
-		response = OK_MSG;
-	}
-	cout << "hamada" << endl;
-    
-	sendResponse(new_fd, response);
-    
-    cout << "hamada 2" << endl;
-
-    if(fileType.compare("txt") == 0){
-    	result = sendTxt(new_fd, curRequest);
-    }else if(fileType.compare("html") == 0){
-		result = sendHTML(new_fd, curRequest);
-    }else if(fileType.compare("img") == 0){
-    	result = sendImg(new_fd, curRequest);
+void handleGetRequest(int new_fd, std::vector<std::string> curRequest){
+    std::string fileType = curRequest[5];
+    int result;
+    char* response;
+    std::string fileName = curRequest[1];    
+    if(!checkFileExisting(fileName)){
+         response = ERR_MSG;    
     }else{
-		printf("(GET request) file type not recognised\n");
+        response = OK_MSG;
     }
     
-    cout << "ahah" << endl;
-	if(result == -1){
-		printf("file not found");
-	}
+     sendResponse(new_fd, response);
+
+    if(fileType.compare("txt") == 0){
+        result = send(new_fd, curRequest);
+    }else if(fileType.compare("html") == 0){
+        result = send(new_fd, curRequest);
+    }else if(fileType.compare("img") == 0){
+        result = send(new_fd, curRequest);
+    }else{
+        printf("(GET request) file type not recognised\n");
+    }
+    
+    if(result == -1){
+        printf("file not found");
+    }
 }
 
 
 
-int main(void) {
+int main(int argc, char *argv[])
+{
     int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr;  // connector's address information
@@ -130,7 +108,14 @@ int main(void) {
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;  // use my IP
-    if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
+
+    if (argc != 2)
+    {
+        fprintf(stderr,"Host name and port missing.\n");
+        exit(1);
+    }
+    if ((rv = getaddrinfo(NULL,argv[1], &hints, &servinfo)) != 0)
+    {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         return 1;
     }
@@ -184,59 +169,54 @@ int main(void) {
             perror("accept");
             continue;
         }
+        struct timeval timeout;
+        timeout.tv_sec = 10;
+        timeout.tv_usec = 0;
+        if (setsockopt(new_fd, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof(timeout)) < 0) {
+            perror("setsockopt failed\n");
+        }
+
+
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr*)&their_addr),
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
-        if (!fork()) {     // this is the child process 
-            close(sockfd);  // child doesn't need the listener
-            char buf[MAXDATASIZE];
-            int numbytes;
-			char* buffer;
-			int result = recv(new_fd,buffer, 255, 0);
-			if (result <= -1) {
+        if (!fork())      // this is the child process
+        {
+            
+            // close(sockfd);  // child doesn't need the listener
+            char buffer[MAXDATASIZE];
+
+            // char* buffer;
+            int result = recv(new_fd, buffer, 255, 0);
+            if (result <= -1) {
                 perror("recv");
                 exit(1);
             }
+
             // Request.
-            cout << buffer << endl;
+
             // parse request.
             string str(buffer);
-            vector<string> request = parse_request(str);
-            //check Get or Post.
-            // Get
+            std::vector<std::string> request = parse_request(str);
+            
+            if(request[FILENAME].at(0) == '/'){
+                string fileName = request[FILENAME].substr(1, (request[FILENAME]).size() -1);    
+                request[FILENAME] = fileName;
+            }
+
+            cout << "FILENAME " << request[FILENAME] << endl;
+            
+            string fileType = getFileType(request);
+            request[5] = fileType;
+
             // GET => ttt.txt => HTTP/1.1 => Host: => www.tutorialspoint.com
-            if (request.at(REQUESTTYPE).compare(GET) == 0) {
-                cout << "get" << endl;
-                cout << "hi" << endl;
-                string file_name = request.at(FILENAME);
-                // check the extension.
+            if (request.at(REQUESTTYPE).compare(GET) == 0)
+                handleGetRequest(new_fd, request);
+            else if (request.at(REQUESTTYPE).compare(POST) == 0) 
+                handlePostRequest(new_fd, request);
+            else
+                perror("request type");
 
-                string line;
-                ifstream infile;
-                cout <<  file_name << endl;
-                // use file name to open file and send it. 
-                 infile.open(file_name.c_str()); // Get file name from request
-                // File doesn't exits.
-                if (!infile){
-                    //error file doesn't exitst
-                }
-                cout << "228 " << endl;
-                while(!infile.eof()) {
-                    cout << "230" << endl;
-                    getline(infile,line); 
-                    const char *STRING_mod = line.c_str();
-                    send(new_fd , STRING_mod , strlen(STRING_mod) , 0);
-                }
-                cout << "235" << endl;
-                char *end_msg="end";
-                send(new_fd , end_msg , strlen(end_msg) , 0);
-                infile.close();
-
-            } else if (request.at(REQUESTTYPE).compare(POST) == 0) {
-            // Post, send OK, then receive the file to update.
-                cout << "post" << endl;
-            }    
-            cout << "finished" << endl;
             close(new_fd);
             exit(0);
         }
